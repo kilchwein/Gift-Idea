@@ -1,111 +1,117 @@
-const people = [
-    {
-        id: 1,
-        name: "John Smith",
-        rating: 9,
-        description: "Expert software developer with 10 years of experience. Specializes in React and Node.js.",
-        image: "https://randomuser.me/api/portraits/men/1.jpg",
-        rentOptions: [
-            { duration: "1 hour", price: 50 },
-            { duration: "1 day", price: 300 },
-            { duration: "1 week", price: 1500 }
-        ],
-        buyPrice: 100000
-    },
-    {
-        id: 2,
-        name: "Sarah Johnson",
-        rating: 8,
-        description: "Professional project manager with excellent communication skills and agile methodology expertise.",
-        image: "https://randomuser.me/api/portraits/women/1.jpg",
-        rentOptions: [
-            { duration: "1 hour", price: 45 },
-            { duration: "1 day", price: 280 },
-            { duration: "1 week", price: 1400 }
-        ],
-        buyPrice: 90000
-    },
-    {
-        id: 3,
-        name: "Michael Chen",
-        rating: 10,
-        description: "AI researcher and data scientist with PhD in Machine Learning. Published in top conferences.",
-        image: "https://randomuser.me/api/portraits/men/2.jpg",
-        rentOptions: [
-            { duration: "1 hour", price: 60 },
-            { duration: "1 day", price: 350 },
-            { duration: "1 week", price: 1800 }
-        ],
-        buyPrice: 120000
-    }
-];
+let currentQuestion = 0;
+let userAnswers = [];
 
-function displayPeople() {
-    const grid = document.getElementById('peopleGrid');
-    grid.innerHTML = people.map(person => `
-        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
-            <img src="${person.image}" alt="${person.name}" class="w-full h-48 object-cover">
-            <div class="p-4">
-                <h2 class="text-xl font-bold mb-2">${person.name}</h2>
-                <div class="flex items-center mb-2">
-                    <span class="text-yellow-500 font-bold">Rating: ${person.rating}/10</span>
-                </div>
-                <p class="text-gray-600 mb-4">${person.description}</p>
-                <button 
-                    onclick="showOptions(${person.id})" 
-                    class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 w-full"
-                >
-                    View Options
-                </button>
-            </div>
-        </div>
-    `).join('');
-}
-
-function showOptions(personId) {
-    const person = people.find(p => p.id === personId);
-    const modal = document.getElementById('modal');
-    const modalTitle = document.getElementById('modalTitle');
-    const modalOptions = document.getElementById('modalOptions');
-
-    modalTitle.textContent = `Options for ${person.name}`;
+// Initialize the application
+document.addEventListener('DOMContentLoaded', () => {
+    const startBtn = document.getElementById('start-btn');
+    const restartBtn = document.getElementById('restart-btn');
     
-    const rentOptionsHtml = person.rentOptions.map(option => `
-        <button 
-            onclick="handleRent('${person.name}', '${option.duration}', ${option.price})"
-            class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 w-full"
-        >
-            Rent for ${option.duration} ($${option.price})
-        </button>
-    `).join('');
+    startBtn.addEventListener('click', startQuiz);
+    restartBtn.addEventListener('click', restartQuiz);
+});
 
-    const buyOptionHtml = `
-        <button 
-            onclick="handleBuy('${person.name}', ${person.buyPrice})"
-            class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 w-full"
-        >
-            Buy for $${person.buyPrice}
-        </button>
+function startQuiz() {
+    gsap.to('#welcome-screen', {
+        opacity: 0,
+        duration: 0.5,
+        onComplete: () => {
+            document.getElementById('welcome-screen').classList.add('hidden');
+            document.getElementById('question-container').classList.remove('hidden');
+            showQuestion(0);
+        }
+    });
+}
+
+function showQuestion(index) {
+    const question = questions[index];
+    const questionText = document.getElementById('question-text');
+    const optionsContainer = document.getElementById('options-container');
+    const progress = document.getElementById('progress');
+    
+    // Update progress bar
+    progress.style.width = `${((index + 1) / questions.length) * 100}%`;
+    
+    // Animate question text
+    gsap.fromTo(questionText, 
+        { opacity: 0, y: -20 },
+        { opacity: 1, y: 0, duration: 0.5 }
+    );
+
+    questionText.textContent = question.text;
+    optionsContainer.innerHTML = '';
+
+    question.options.forEach((option, i) => {
+        const button = document.createElement('button');
+        button.className = 'option-button';
+        button.textContent = option;
+        
+        // Stagger animation for options
+        gsap.fromTo(button,
+            { opacity: 0, x: -50 },
+            { opacity: 1, x: 0, duration: 0.5, delay: i * 0.1 }
+        );
+
+        button.addEventListener('click', () => handleAnswer(option));
+        optionsContainer.appendChild(button);
+    });
+}
+
+function handleAnswer(answer) {
+    userAnswers.push(answer);
+    
+    if (currentQuestion < questions.length - 1) {
+        currentQuestion++;
+        showQuestion(currentQuestion);
+    } else {
+        showResults();
+    }
+}
+
+function showResults() {
+    document.getElementById('question-container').classList.add('hidden');
+    const resultsScreen = document.getElementById('results-screen');
+    resultsScreen.classList.remove('hidden');
+    
+    const giftsContainer = document.getElementById('gifts-container');
+    const recommendedGifts = getRecommendedGifts();
+    
+    giftsContainer.innerHTML = '';
+    
+    recommendedGifts.forEach((gift, index) => {
+        const giftCard = createGiftCard(gift);
+        
+        // Stagger animation for gift cards
+        gsap.fromTo(giftCard,
+            { opacity: 0, y: 50 },
+            { opacity: 1, y: 0, duration: 0.5, delay: index * 0.2 }
+        );
+        
+        giftsContainer.appendChild(giftCard);
+    });
+}
+
+function createGiftCard(gift) {
+    const card = document.createElement('div');
+    card.className = 'gift-card';
+    card.innerHTML = `
+        <img src="${gift.image}" alt="${gift.name}" class="w-full h-48 object-cover rounded-lg mb-4">
+        <h3 class="text-xl font-bold text-white mb-2">${gift.name}</h3>
+        <p class="text-white/80 mb-2">${gift.description}</p>
+        <p class="text-white font-bold">${gift.price}</p>
     `;
-
-    modalOptions.innerHTML = rentOptionsHtml + buyOptionHtml;
-    modal.classList.remove('hidden');
+    return card;
 }
 
-function closeModal() {
-    const modal = document.getElementById('modal');
-    modal.classList.add('hidden');
+function getRecommendedGifts() {
+    // Implement gift matching logic based on userAnswers
+    // This is a simplified version
+    return gifts.slice(0, 6); // Return first 6 gifts for demo
 }
 
-function handleRent(name, duration, price) {
-    alert(`You have rented ${name} for ${duration} at $${price}`);
-    closeModal();
+function restartQuiz() {
+    currentQuestion = 0;
+    userAnswers = [];
+    document.getElementById('results-screen').classList.add('hidden');
+    document.getElementById('welcome-screen').classList.remove('hidden');
+    gsap.to('#welcome-screen', { opacity: 1, duration: 0.5 });
 }
-
-function handleBuy(name, price) {
-    alert(`You have purchased ${name} for $${price}`);
-    closeModal();
-}
-
-// Initialize the display when the page loads
-document.addEventListener('DOMContentLoaded', displayPeople); 

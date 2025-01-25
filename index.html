@@ -3,32 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>People Marketplace</title>
+    <title>GiftGenius - Find the Perfect Gift</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="script.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
 </head>
-<body class="bg-gray-100">
-    <header class="bg-blue-600 text-white p-6">
-        <h1 class="text-3xl font-bold text-center">People Marketplace</h1>
-    </header>
-
-    <main class="container mx-auto p-6">
-        <div id="peopleGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- People cards will be inserted here by JavaScript -->
+<body class="bg-gradient-to-br from-purple-600 to-blue-500 min-h-screen">
+    <div id="app" class="container mx-auto px-4 py-8">
+        <!-- Welcome Screen -->
+        <div id="welcome-screen" class="text-center">
+            <h1 class="text-6xl font-bold text-white mb-6 animate-bounce">
+                🎁 GiftGenius
+            </h1>
+            <p class="text-xl text-white mb-8">
+                Let's find the perfect gift together through a magical journey!
+            </p>
+            <button id="start-btn" 
+                    class="bg-white text-purple-600 px-8 py-4 rounded-full text-xl font-bold
+                           hover:bg-purple-100 transform hover:scale-105 transition-all
+                           shadow-lg hover:shadow-xl">
+                Start Your Gift Journey ✨
+            </button>
         </div>
-    </main>
 
-    <!-- Modal for purchase/rent options -->
-    <div id="modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-        <div class="bg-white p-6 rounded-lg max-w-md w-full">
-            <h2 id="modalTitle" class="text-2xl font-bold mb-4"></h2>
-            <div id="modalOptions" class="space-y-4">
-                <!-- Options will be inserted here -->
+        <!-- Question Container -->
+        <div id="question-container" class="hidden">
+            <div class="progress-bar w-full h-2 bg-white/20 rounded-full mb-8">
+                <div id="progress" class="h-full bg-white rounded-full transition-all duration-500"></div>
             </div>
-            <button onclick="closeModal()" class="mt-4 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
-                Close
+            <div class="bg-white/10 backdrop-blur-lg rounded-2xl p-8 shadow-2xl">
+                <h2 id="question-text" class="text-3xl text-white font-bold mb-6"></h2>
+                <div id="options-container" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+            </div>
+        </div>
+
+        <!-- Results Screen -->
+        <div id="results-screen" class="hidden">
+            <h2 class="text-4xl font-bold text-white mb-8">🎉 Your Perfect Gifts</h2>
+            <div id="gifts-container" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+            <button id="restart-btn" 
+                    class="mt-8 bg-white text-purple-600 px-8 py-4 rounded-full text-xl font-bold
+                           hover:bg-purple-100 transform hover:scale-105 transition-all
+                           shadow-lg hover:shadow-xl">
+                Start Over 🔄
             </button>
         </div>
     </div>
+    <script src="questions.js"></script>
+    <script src="gifts.js"></script>
+    <script src="script.js"></script>
 </body>
-</html> 
+</html>

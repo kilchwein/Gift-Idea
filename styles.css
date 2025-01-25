@@ -1,0 +1,28 @@
+.option-button {
+    @apply bg-white/20 backdrop-blur-sm text-white px-6 py-4 rounded-xl
+           hover:bg-white/30 transform hover:scale-105 transition-all
+           cursor-pointer text-lg font-semibold;
+}
+
+.gift-card {
+    @apply bg-white/10 backdrop-blur-lg rounded-xl p-6 transform
+           hover:scale-105 transition-all cursor-pointer;
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.slide-in {
+    animation: slideIn 0.5s ease-out;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(-100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+} 
