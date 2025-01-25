@@ -28,27 +28,45 @@ function showQuestion(index) {
     const optionsContainer = document.getElementById('options-container');
     const progress = document.getElementById('progress');
     
-    // Update progress bar
-    progress.style.width = `${((index + 1) / questions.length) * 100}%`;
+    // Update progress bar with animation
+    gsap.to(progress, {
+        width: `${((index + 1) / questions.length) * 100}%`,
+        duration: 0.5,
+        ease: "power2.out"
+    });
     
     // Animate question text
     gsap.fromTo(questionText, 
         { opacity: 0, y: -20 },
-        { opacity: 1, y: 0, duration: 0.5 }
+        { opacity: 1, y: 0, duration: 0.7, ease: "back.out" }
     );
 
     questionText.textContent = question.text;
     optionsContainer.innerHTML = '';
+
+    // Adjust grid columns based on number of options
+    optionsContainer.className = `grid gap-4 ${
+        question.options.length > 4 
+            ? 'grid-cols-1 md:grid-cols-3' 
+            : 'grid-cols-1 md:grid-cols-2'
+    }`;
 
     question.options.forEach((option, i) => {
         const button = document.createElement('button');
         button.className = 'option-button';
         button.textContent = option;
         
-        // Stagger animation for options
+        // Enhanced stagger animation for options
         gsap.fromTo(button,
-            { opacity: 0, x: -50 },
-            { opacity: 1, x: 0, duration: 0.5, delay: i * 0.1 }
+            { opacity: 0, x: -50, scale: 0.8 },
+            { 
+                opacity: 1, 
+                x: 0, 
+                scale: 1,
+                duration: 0.5, 
+                delay: i * 0.1,
+                ease: "back.out(1.7)"
+            }
         );
 
         button.addEventListener('click', () => handleAnswer(option));

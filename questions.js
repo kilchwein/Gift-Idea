@@ -1,102 +1,115 @@
 const questions = [
     {
         id: 1,
-        text: "Who are you shopping for?",
+        text: "What kind of superhero is your gift recipient? 🦸‍♂️",
         options: [
-            "Partner/Spouse",
-            "Family Member",
-            "Friend",
-            "Colleague"
+            "The Tech Wizard 🔮",
+            "The Creative Soul 🎨",
+            "The Adventure Seeker 🏃‍♂️",
+            "The Knowledge Hunter 📚",
+            "The Social Butterfly 🦋",
+            "The Zen Master 🧘‍♂️"
         ]
     },
     {
         id: 2,
-        text: "What's their age group?",
+        text: "If they were a dessert, what would they be? 🍰",
         options: [
-            "Teen (13-19)",
-            "Young Adult (20-30)",
-            "Adult (31-50)",
-            "Senior (51+)"
+            "Classic Chocolate Cake (Traditional)",
+            "Exotic Macarons (Sophisticated)",
+            "Colorful Donuts (Fun-loving)",
+            "Healthy Fruit Tart (Health-conscious)"
         ]
     },
     {
         id: 3,
-        text: "What's their primary interest?",
+        text: "What's their idea of a perfect weekend? 🌟",
         options: [
-            "Technology",
-            "Arts & Creativity",
-            "Sports & Fitness",
-            "Reading & Learning"
+            "Netflix Marathon & Chill 🎬",
+            "Outdoor Adventure 🏕️",
+            "Creative Project Time 🎨",
+            "Party with Friends 🎉",
+            "Learning Something New 📖",
+            "Gaming Session 🎮"
         ]
     },
     {
         id: 4,
-        text: "What's your budget range?",
+        text: "What magical power would they want? ✨",
         options: [
-            "Under $50",
-            "$50-$100",
-            "$100-$500",
-            "$500+"
+            "Time Control ⌛",
+            "Mind Reading 🧠",
+            "Flying 🦅",
+            "Teleportation 🌀",
+            "Shape-shifting 🎭"
         ]
     },
     {
         id: 5,
-        text: "What's their personality type?",
+        text: "Pick their spirit animal! 🐾",
         options: [
-            "Adventurous",
-            "Practical",
-            "Creative",
-            "Intellectual"
+            "Wise Owl 🦉",
+            "Playful Dolphin 🐬",
+            "Mighty Lion 🦁",
+            "Graceful Cat 🐱",
+            "Loyal Dog 🐕"
         ]
     },
     {
         id: 6,
-        text: "What's the occasion?",
+        text: "What's their relationship with technology? 🤖",
         options: [
-            "Birthday",
-            "Holiday",
-            "Anniversary",
-            "Just Because"
+            "Tech Pioneer (Always has the latest gadgets)",
+            "Digital Native (Comfortable but not obsessed)",
+            "Selective User (Only the basics)",
+            "Tech-Skeptic (Prefers analog)"
         ]
     },
     {
         id: 7,
-        text: "How would you describe their style?",
+        text: "What emoji describes them best? 😊",
         options: [
-            "Modern & Trendy",
-            "Classic & Traditional",
-            "Minimalist",
-            "Eclectic"
+            "✨ Sparkles (Dreamy)",
+            "🚀 Rocket (Ambitious)",
+            "🎨 Artist Palette (Creative)",
+            "🧘‍♂️ Meditation (Peaceful)",
+            "🎮 Gaming (Playful)",
+            "📚 Books (Intellectual)"
         ]
     },
     {
         id: 8,
-        text: "What do they value most?",
+        text: "What's their superpower in life? 💫",
         options: [
-            "Experiences",
-            "Material Items",
-            "Practicality",
-            "Sentimental Value"
+            "Making Everyone Laugh 😂",
+            "Solving Problems 🔧",
+            "Creating Beauty 🎨",
+            "Helping Others 🤝",
+            "Never Giving Up 💪"
         ]
     },
     {
         id: 9,
-        text: "How much time do they spend outdoors?",
+        text: "Pick their dream vacation! 🌴",
         options: [
-            "Very Active Outdoors",
-            "Occasional Outdoor Activities",
-            "Mostly Indoors",
-            "Balance of Both"
+            "Cultural City Explorer 🏛️",
+            "Beach Paradise 🏖️",
+            "Mountain Adventure ⛰️",
+            "Luxury Spa Retreat 💆‍♂️",
+            "Historical Journey 🏺",
+            "Theme Park Fun 🎢"
         ]
     },
     {
         id: 10,
-        text: "What's their preferred way to relax?",
+        text: "What's their life motto? 💭",
         options: [
-            "Physical Activities",
-            "Entertainment",
-            "Creative Pursuits",
-            "Quiet Time"
+            "Live, Laugh, Love 💝",
+            "Adventure Awaits 🌎",
+            "Create Every Day 🎨",
+            "Keep Learning 📚",
+            "Spread Joy 🌟",
+            "Stay Wild 🦁"
         ]
     }
 ]; 

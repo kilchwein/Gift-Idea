@@ -1,12 +1,16 @@
 .option-button {
     @apply bg-white/20 backdrop-blur-sm text-white px-6 py-4 rounded-xl
-           hover:bg-white/30 transform hover:scale-105 transition-all
-           cursor-pointer text-lg font-semibold;
+           hover:bg-gradient-to-r hover:from-pink-500 hover:via-purple-500 hover:to-indigo-500
+           transform hover:scale-110 transition-all duration-300
+           cursor-pointer text-lg font-semibold shadow-lg hover:shadow-2xl
+           border-2 border-white/30 hover:border-transparent;
 }
 
 .gift-card {
     @apply bg-white/10 backdrop-blur-lg rounded-xl p-6 transform
-           hover:scale-105 transition-all cursor-pointer;
+           hover:scale-110 transition-all duration-300 cursor-pointer
+           hover:bg-gradient-to-r hover:from-pink-500/50 hover:via-purple-500/50 hover:to-indigo-500/50
+           border-2 border-white/30 hover:border-transparent;
 }
 
 .fade-in {
@@ -25,4 +29,20 @@
 @keyframes slideIn {
     from { transform: translateX(-100%); opacity: 0; }
     to { transform: translateX(0); opacity: 1; }
+}
+
+.shimmer {
+    background: linear-gradient(
+        90deg,
+        rgba(255,255,255,0) 0%,
+        rgba(255,255,255,0.2) 50%,
+        rgba(255,255,255,0) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
 } 

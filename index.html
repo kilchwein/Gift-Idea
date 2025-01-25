@@ -8,21 +8,21 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <link rel="stylesheet" href="styles.css">
 </head>
-<body class="bg-gradient-to-br from-purple-600 to-blue-500 min-h-screen">
-    <div id="app" class="container mx-auto px-4 py-8">
+<body class="bg-gradient-to-br from-purple-600 to-blue-500 min-h-screen flex items-center justify-center">
+    <div id="app" class="container mx-auto px-4 py-8 max-w-6xl">
         <!-- Welcome Screen -->
-        <div id="welcome-screen" class="text-center">
-            <h1 class="text-6xl font-bold text-white mb-6 animate-bounce">
+        <div id="welcome-screen" class="text-center transform hover:scale-105 transition-all duration-500">
+            <h1 class="text-7xl font-bold text-white mb-8 animate-bounce bg-clip-text text-transparent bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500">
                 🎁 GiftGenius
             </h1>
-            <p class="text-xl text-white mb-8">
-                Let's find the perfect gift together through a magical journey!
+            <p class="text-2xl text-white mb-12 animate-pulse">
+                Ready for a magical journey to find the perfect gift? ✨
             </p>
             <button id="start-btn" 
-                    class="bg-white text-purple-600 px-8 py-4 rounded-full text-xl font-bold
-                           hover:bg-purple-100 transform hover:scale-105 transition-all
-                           shadow-lg hover:shadow-xl">
-                Start Your Gift Journey ✨
+                    class="bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-white px-12 py-6 rounded-full text-2xl font-bold
+                           hover:from-pink-600 hover:via-purple-600 hover:to-indigo-600 transform hover:scale-110 transition-all duration-300
+                           shadow-lg hover:shadow-2xl animate-pulse">
+                Begin the Adventure 🚀
             </button>
         </div>
 
