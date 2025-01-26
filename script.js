@@ -1,6 +1,16 @@
 let currentQuestion = 0;
 let userAnswers = [];
 
+// Add this near the top of the file with other constants
+const bgColors = [
+    'from-pink-500 to-rose-500',
+    'from-purple-500 to-indigo-500',
+    'from-blue-500 to-cyan-500',
+    'from-emerald-500 to-teal-500',
+    'from-orange-500 to-amber-500',
+    'from-violet-500 to-fuchsia-500'
+];
+
 // Initialize the application
 document.addEventListener('DOMContentLoaded', () => {
     const startBtn = document.getElementById('start-btn');
@@ -44,7 +54,7 @@ function showQuestion(index) {
     questionText.textContent = question.text;
     optionsContainer.innerHTML = '';
 
-    // Adjust grid columns based on number of options
+    // Always use 2 or 3 columns based on number of options
     optionsContainer.className = `grid gap-4 ${
         question.options.length > 4 
             ? 'grid-cols-1 md:grid-cols-3' 
@@ -53,10 +63,30 @@ function showQuestion(index) {
 
     question.options.forEach((option, i) => {
         const button = document.createElement('button');
-        button.className = 'option-button';
-        button.textContent = option;
+        button.className = `
+            option-button group relative overflow-hidden
+            bg-white/10 backdrop-blur-sm rounded-xl
+            hover:bg-gradient-to-br hover:from-purple-500/50 hover:to-pink-500/50
+            transform hover:scale-105 transition-all duration-300
+            border border-white/20 hover:border-white/40
+            bg-opacity-10 backdrop-filter
+        `;
         
-        // Enhanced stagger animation for options
+        button.innerHTML = `
+            <div class="flex items-center p-4 space-x-4 relative z-10">
+                <div class="bg-black/10 p-3 rounded-full group-hover:bg-white/20 transition-colors duration-300">
+                    <span class="text-2xl filter drop-shadow-lg">${option.icon}</span>
+                </div>
+                <span class="text-lg font-medium text-white text-opacity-90 group-hover:text-white transition-colors duration-300">
+                    ${option.text}
+                </span>
+            </div>
+            <div class="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-300"></div>
+            <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300
+                        bg-gradient-to-r from-white/5 via-white/10 to-transparent
+                        transform -skew-x-12"></div>
+        `;
+        
         gsap.fromTo(button,
             { opacity: 0, x: -50, scale: 0.8 },
             { 
@@ -69,7 +99,7 @@ function showQuestion(index) {
             }
         );
 
-        button.addEventListener('click', () => handleAnswer(option));
+        button.addEventListener('click', () => handleAnswer(option.text));
         optionsContainer.appendChild(button);
     });
 }
@@ -138,73 +168,45 @@ async function showResults() {
     });
 }
 
-function getGiftIcon(giftName, index) {
-    // Array of background colors for icons
-    const bgColors = [
-        'from-pink-500 to-rose-500',
-        'from-purple-500 to-indigo-500',
-        'from-blue-500 to-cyan-500',
-        'from-emerald-500 to-teal-500',
-        'from-orange-500 to-amber-500'
-    ];
-
-    // Map common gift categories to icons
-    const iconMap = {
-        // Tech
-        'smart': '💻',
-        'phone': '📱',
-        'watch': '⌚',
-        'headphone': '🎧',
-        'camera': '📸',
-        'gaming': '🎮',
-        
-        // Creative
-        'art': '🎨',
-        'music': '🎵',
-        'book': '📚',
-        'writing': '✍️',
-        'craft': '🎭',
-        
-        // Sports & Outdoors
-        'fitness': '💪',
-        'yoga': '🧘',
-        'hiking': '🏃',
-        'camping': '⛺',
-        'sports': '🏅',
-        
-        // Relaxation
-        'spa': '💆',
-        'massage': '🧖',
-        'candle': '🕯️',
-        'tea': '☕',
-        
-        // Experience
-        'ticket': '🎟️',
-        'travel': '✈️',
-        'adventure': '🗺️',
-        'cooking': '👨‍🍳',
-        'class': '📝',
-        
-        // Default
-        'gift': '🎁'
+function getGiftIcon(category) {
+    // Map gift categories to appropriate icons
+    const categoryIcons = {
+        tech: '💻',
+        gaming: '🎮',
+        creative: '🎨',
+        music: '🎵',
+        books: '📚',
+        experience: '🎭',
+        wellness: '🧘',
+        fitness: '💪',
+        fashion: '👔',
+        home: '🏡',
+        cooking: '👨‍🍳',
+        travel: '✈️',
+        sports: '⚽',
+        education: '🎓',
+        photography: '📸',
+        outdoor: '🏕️',
+        beauty: '💄',
+        jewelry: '💎',
+        entertainment: '🎬',
+        gadgets: '🔧',
+        subscription: '📱',
+        handmade: '🎨',
+        luxury: '✨',
+        eco: '🌱',
+        default: '🎁'
     };
 
-    // Find matching icon by checking if gift name includes any key
-    const matchingKey = Object.keys(iconMap).find(key => 
-        giftName.toLowerCase().includes(key.toLowerCase())
-    );
-
-    const icon = matchingKey ? iconMap[matchingKey] : iconMap.gift;
-    const bgColor = bgColors[index % bgColors.length];
-    
-    return { icon, bgColor };
+    return categoryIcons[category.toLowerCase()] || categoryIcons.default;
 }
 
 function createGiftCard(gift, index) {
     const card = document.createElement('div');
     card.className = 'gift-card';
     
-    const { icon, bgColor } = getGiftIcon(gift.name, index);
+    const icon = getGiftIcon(gift.category);
+    const bgColor = bgColors[index % bgColors.length];
     
     card.innerHTML = `
         <div class="flex items-center mb-4">
@@ -240,7 +242,7 @@ async function getRecommendedGifts() {
                 messages: [
                     {
                         role: "system",
-                        content: `You are a gift recommendation expert. Based on the user's answers, suggest 5 unique and personalized gift ideas. 
+                        content: `You are a gift recommendation expert. Based on the user's answers, suggest 6 unique and personalized gift ideas. 
                         
                         Guidelines for recommendations:
                         - Keep descriptions concise and focused on features and benefits
@@ -248,14 +250,18 @@ async function getRecommendedGifts() {
                         - Focus reasoning on how the gift matches their personality and preferences
                         - Keep price ranges realistic and specific
                         - Each gift should be distinctly different from the others
+                        - Include a primary category for each gift (e.g., "tech", "creative", "experience", "wellness", etc.)
                         
-                        Example of good description:
-                        "High-performance wireless gaming controller with customizable buttons and ergonomic design"
+                        Example of good response:
+                        {
+                            "name": "High-End Drawing Tablet",
+                            "category": "creative",
+                            "description": "Professional-grade digital drawing tablet with pressure sensitivity and wireless capability",
+                            "priceRange": "$200-$300",
+                            "reasoning": "Perfect for someone who loves digital art and values professional creative tools"
+                        }
                         
-                        Example of good reasoning:
-                        "Perfect for someone who enjoys gaming and values both comfort and precision in their gaming experience"
-                        
-                        Respond in JSON format with an array of gift objects.`
+                        Respond in JSON format with an array of 6 gift objects.`
                     },
                     {
                         role: "user",
@@ -279,7 +285,7 @@ function generatePromptFromAnswers() {
         `For "${q.text}", they chose: "${userAnswers[i]}"`
     ).join('\n');
 
-    return `Based on these answers, suggest 5 personalized gift ideas:
+    return `Based on these answers, suggest 6 personalized gift ideas:
     ${answerSummary}
     
     Please provide recommendations in this JSON format:
@@ -287,6 +293,7 @@ function generatePromptFromAnswers() {
         "gifts": [
             {
                 "name": "Gift Name",
+                "category": "Primary category",
                 "description": "Brief, feature-focused description without mentioning icons",
                 "priceRange": "Specific price range in USD",
                 "reasoning": "Clear explanation of why this matches their preferences, without referencing icons"
@@ -301,7 +308,8 @@ function transformRecommendations(recommendations) {
         name: rec.name,
         description: rec.description,
         price: rec.priceRange,
-        reasoning: rec.reasoning
+        reasoning: rec.reasoning,
+        category: rec.category
     }));
 }
 
@@ -309,38 +317,51 @@ function getFallbackGifts() {
     return [
         {
             id: 1,
-            name: "Personalized Gift Box",
-            description: "A curated collection of thoughtful items",
-            price: "$50-$100",
-            reasoning: "A versatile option that can be customized to their interests"
+            name: "Smart Home Starter Kit",
+            description: "Voice-controlled smart speaker with smart bulbs and plugs",
+            price: "$150-$200",
+            reasoning: "Perfect for someone interested in modern home automation",
+            category: "tech"
         },
         {
             id: 2,
-            name: "Smart Watch Fitness Tracker",
-            description: "Track health and stay connected",
-            price: "$80-$150",
-            reasoning: "Perfect for someone interested in health and technology"
+            name: "Professional Art Set",
+            description: "High-quality art supplies in a wooden case",
+            price: "$80-$120",
+            reasoning: "Ideal for creative expression and artistic development",
+            category: "creative"
         },
         {
             id: 3,
-            name: "Art Supply Set",
-            description: "Premium creative materials",
-            price: "$40-$80",
-            reasoning: "Ideal for expressing creativity"
+            name: "Adventure Experience Day",
+            description: "Choice of outdoor activities like rock climbing or kayaking",
+            price: "$100-$200",
+            reasoning: "Great for thrill-seekers and adventure enthusiasts",
+            category: "experience"
         },
         {
             id: 4,
-            name: "Meditation App Subscription",
-            description: "Year of premium mindfulness content",
-            price: "$60-$100",
-            reasoning: "Great for relaxation and personal growth"
+            name: "Premium Wellness Package",
+            description: "Annual meditation app subscription with massage voucher",
+            price: "$120-$180",
+            reasoning: "Perfect for relaxation and mental wellbeing",
+            category: "wellness"
         },
         {
             id: 5,
-            name: "Adventure Experience Voucher",
-            description: "Choice of exciting local activities",
-            price: "$100-$200",
-            reasoning: "Perfect for making memorable experiences"
+            name: "Gaming Console Bundle",
+            description: "Latest gaming console with two controllers and popular games",
+            price: "$400-$500",
+            reasoning: "Ideal for gaming enthusiasts and social players",
+            category: "gaming"
+        },
+        {
+            id: 6,
+            name: "Gourmet Cooking Set",
+            description: "Professional-grade cookware with online cooking classes",
+            price: "$250-$300",
+            reasoning: "Perfect for aspiring chefs and food lovers",
+            category: "cooking"
         }
     ];
 }
@@ -348,6 +369,10 @@ function getFallbackGifts() {
 function restartQuiz() {
     currentQuestion = 0;
     userAnswers = [];
+    // Get new random questions
+    questions.length = 0;
+    questions.push(...getRandomQuestions());
+    
     document.getElementById('results-screen').classList.add('hidden');
     document.getElementById('welcome-screen').classList.remove('hidden');
     gsap.to('#welcome-screen', { opacity: 1, duration: 0.5 });
