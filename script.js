@@ -1,3 +1,19 @@
+import {
+    quizModes,
+    budgetRanges,
+    occasionCategories,
+    tools,
+    GiftRegistry,
+    EventCountdown,
+    GiftCalculator
+} from './modes.js';
+
+// Initialize the tools
+const registry = new GiftRegistry();
+const countdown = new EventCountdown();
+const calculator = new GiftCalculator();
+
+let currentMode = null;
 let currentQuestion = 0;
 let userAnswers = [];
 
@@ -32,7 +48,35 @@ document.addEventListener('DOMContentLoaded', () => {
         // Show results
         await showResults();
     });
+
+    // Quiz mode buttons
+    document.querySelector('.quick-quiz-btn').addEventListener('click', () => startQuizMode('quick'));
+    document.querySelector('.detailed-quiz-btn').addEventListener('click', () => startQuizMode('detailed'));
+    document.querySelector('.expert-quiz-btn').addEventListener('click', () => startQuizMode('expert'));
+
+    // Alternative paths
+    document.querySelector('.budget-path-btn').addEventListener('click', showBudgetExplorer);
+    document.querySelector('.occasion-path-btn').addEventListener('click', showOccasionFinder);
+
+    // Tools
+    document.querySelectorAll('.tool-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const toolName = e.target.textContent.split(' ')[0].toLowerCase();
+            showTool(toolName);
+        });
+    });
 });
+
+function startQuizMode(mode) {
+    currentMode = mode;
+    const questionCount = quizModes[mode].questionCount;
+    
+    // Get new set of questions based on mode
+    questions.length = 0;
+    questions.push(...getRandomQuestions(questionCount));
+    
+    startQuiz();
+}
 
 function startQuiz() {
     // Reset progress bar to 0% before starting
@@ -437,4 +481,336 @@ function restartQuiz() {
     document.getElementById('confirmation-screen').classList.add('hidden');
     document.getElementById('welcome-screen').classList.remove('hidden');
     gsap.to('#welcome-screen', { opacity: 1, duration: 0.5 });
+}
+
+function showBudgetExplorer() {
+    // Hide welcome screen
+    gsap.to('#welcome-screen', {
+        opacity: 0,
+        duration: 0.3,
+        onComplete: () => {
+            document.getElementById('welcome-screen').classList.add('hidden');
+            document.getElementById('budget-explorer').classList.remove('hidden');
+            initializeBudgetExplorer();
+        }
+    });
+}
+
+function initializeBudgetExplorer() {
+    const budgetRangesContainer = document.getElementById('budget-ranges');
+    const categoriesContainer = document.getElementById('gift-categories');
+    
+    // Populate budget ranges
+    budgetRangesContainer.innerHTML = budgetRanges.map(range => `
+        <button class="budget-range-btn bg-white/10 p-3 rounded-xl text-white hover:bg-white/20 transition-all duration-300
+                       data-min="${range.min}" data-max="${range.max}">
+            ${range.label}
+        </button>
+    `).join('');
+    
+    // Add click handlers for budget ranges
+    document.querySelectorAll('.budget-range-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.budget-range-btn').forEach(b => 
+                b.classList.remove('bg-green-500', 'hover:bg-green-600'));
+            btn.classList.add('bg-green-500', 'hover:bg-green-600');
+        });
+    });
+    
+    // Populate gift categories with checkboxes
+    categoriesContainer.innerHTML = Object.entries(categoryIcons).map(([category, icon]) => `
+        <div class="flex items-center space-x-3">
+            <input type="checkbox" id="cat-${category}" class="w-4 h-4">
+            <label for="cat-${category}" class="text-white flex items-center space-x-2">
+                <span>${icon}</span>
+                <span>${category.charAt(0).toUpperCase() + category.slice(1)}</span>
+            </label>
+        </div>
+    `).join('');
+    
+    // Add event listeners for navigation
+    document.getElementById('back-to-home').addEventListener('click', () => {
+        document.getElementById('budget-explorer').classList.add('hidden');
+        document.getElementById('welcome-screen').classList.remove('hidden');
+        gsap.to('#welcome-screen', { opacity: 1, duration: 0.3 });
+    });
+    
+    document.getElementById('search-budget-gifts').addEventListener('click', searchBudgetGifts);
+}
+
+async function searchBudgetGifts() {
+    const selectedBudgetBtn = document.querySelector('.budget-range-btn.bg-green-500');
+    const selectedCategories = Array.from(document.querySelectorAll('#gift-categories input:checked'))
+        .map(input => input.id.replace('cat-', ''));
+    
+    if (!selectedBudgetBtn) {
+        alert('Please select a budget range');
+        return;
+    }
+    
+    // Show loading state
+    const resultsSection = document.getElementById('budget-results');
+    const giftsContainer = document.getElementById('budget-gifts-container');
+    resultsSection.classList.remove('hidden');
+    giftsContainer.innerHTML = `
+        <div class="col-span-full flex flex-col items-center justify-center py-12">
+            <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white mb-4"></div>
+            <p class="text-white text-xl">Finding gifts within your budget...</p>
+        </div>
+    `;
+    
+    // Get budget range values
+    const minBudget = parseFloat(selectedBudgetBtn.dataset.min);
+    const maxBudget = selectedBudgetBtn.dataset.max ? parseFloat(selectedBudgetBtn.dataset.max) : Infinity;
+    
+    // Additional filters
+    const filters = {
+        personalized: document.getElementById('personalized').checked,
+        handmade: document.getElementById('handmade').checked,
+        expressShipping: document.getElementById('express-shipping').checked
+    };
+    
+    try {
+        const gifts = await getGiftsByBudget(minBudget, maxBudget, selectedCategories, filters);
+        displayBudgetGifts(gifts);
+    } catch (error) {
+        console.error('Error fetching budget gifts:', error);
+        giftsContainer.innerHTML = `
+            <div class="col-span-full text-center text-white">
+                <p class="text-xl mb-4">Oops! Something went wrong.</p>
+                <button onclick="searchBudgetGifts()" 
+                        class="bg-white/20 px-6 py-3 rounded-full hover:bg-white/30 transition-all duration-300">
+                    Try Again
+                </button>
+            </div>
+        `;
+    }
+}
+
+async function getGiftsByBudget(minBudget, maxBudget, categories, filters) {
+    // Modify your existing getRecommendedGifts function to include budget parameters
+    const prompt = `Suggest gift ideas with the following criteria:
+        - Budget range: $${minBudget} to ${maxBudget === Infinity ? 'unlimited' : '$' + maxBudget}
+        - Categories: ${categories.join(', ') || 'any'}
+        - ${filters.personalized ? 'Include personalized options' : ''}
+        - ${filters.handmade ? 'Include handmade items' : ''}
+        - ${filters.expressShipping ? 'Must have express shipping available' : ''}
+    `;
+    
+    // Use the existing API call with the new prompt
+    try {
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer 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'
+            },
+            body: JSON.stringify({
+                model: "llama-3.3-70b-versatile",
+                response_format: { type: "json_object" },
+                messages: [
+                    {
+                        role: "system",
+                        content: `You are a gift recommendation expert. Based on the budget and preferences, suggest appropriate gift ideas.`
+                    },
+                    {
+                        role: "user",
+                        content: prompt
+                    }
+                ]
+            })
+        });
+
+        const data = await response.json();
+        const recommendations = JSON.parse(data.choices[0].message.content);
+        return transformRecommendations(recommendations.gifts);
+    } catch (error) {
+        console.error('Error getting budget gifts:', error);
+        return getFallbackGifts().filter(gift => {
+            const giftPrice = parseFloat(gift.price.replace(/[^0-9.-]+/g, ''));
+            return giftPrice >= minBudget && giftPrice <= maxBudget;
+        });
+    }
+}
+
+function displayBudgetGifts(gifts) {
+    const giftsContainer = document.getElementById('budget-gifts-container');
+    giftsContainer.innerHTML = '';
+    
+    gifts.forEach((gift, index) => {
+        const giftCard = createGiftCard(gift, index);
+        gsap.fromTo(giftCard,
+            { opacity: 0, y: 50 },
+            { opacity: 1, y: 0, duration: 0.5, delay: index * 0.2 }
+        );
+        giftsContainer.appendChild(giftCard);
+    });
+}
+
+function showOccasionFinder() {
+    // Hide welcome screen
+    gsap.to('#welcome-screen', {
+        opacity: 0,
+        duration: 0.3,
+        onComplete: () => {
+            document.getElementById('welcome-screen').classList.add('hidden');
+            document.getElementById('occasion-finder').classList.remove('hidden');
+            initializeOccasionFinder();
+        }
+    });
+}
+
+function initializeOccasionFinder() {
+    const occasionContainer = document.getElementById('occasion-categories');
+    
+    // Populate main occasion categories
+    occasionContainer.innerHTML = occasionCategories.map(category => `
+        <div class="occasion-category bg-white/10 backdrop-blur-lg rounded-2xl p-6 hover:bg-white/20 transition-all duration-300 cursor-pointer">
+            <div class="flex items-center space-x-4 mb-4">
+                <span class="text-3xl">${category.icon}</span>
+                <h3 class="text-2xl font-bold text-white">${category.name}</h3>
+            </div>
+            <div class="subcategories hidden space-y-2">
+                ${category.subcategories.map(sub => `
+                    <button class="subcategory-btn w-full text-left px-4 py-2 rounded-xl text-white
+                                 hover:bg-white/20 transition-all duration-300 flex items-center space-x-2">
+                        <span class="w-6 h-6 flex items-center justify-center rounded-full bg-white/10">→</span>
+                        <span>${sub}</span>
+                    </button>
+                `).join('')}
+            </div>
+        </div>
+    `).join('');
+    
+    // Add click handlers for categories
+    document.querySelectorAll('.occasion-category').forEach(category => {
+        category.addEventListener('click', (e) => {
+            const subcategories = category.querySelector('.subcategories');
+            const isSubcategoryBtn = e.target.closest('.subcategory-btn');
+            
+            if (isSubcategoryBtn) {
+                // Handle subcategory selection
+                const mainCategory = category.querySelector('h3').textContent;
+                const subCategory = isSubcategoryBtn.textContent.trim();
+                searchOccasionGifts(mainCategory, subCategory);
+            } else {
+                // Toggle subcategories visibility
+                const wasHidden = subcategories.classList.contains('hidden');
+                
+                // Hide all subcategories first
+                document.querySelectorAll('.subcategories').forEach(sub => {
+                    sub.classList.add('hidden');
+                });
+                
+                if (wasHidden) {
+                    subcategories.classList.remove('hidden');
+                    gsap.fromTo(subcategories,
+                        { opacity: 0, height: 0 },
+                        { opacity: 1, height: 'auto', duration: 0.3 }
+                    );
+                }
+            }
+        });
+    });
+    
+    // Add event listener for back button
+    document.getElementById('occasion-back-to-home').addEventListener('click', () => {
+        document.getElementById('occasion-finder').classList.add('hidden');
+        document.getElementById('welcome-screen').classList.remove('hidden');
+        gsap.to('#welcome-screen', { opacity: 1, duration: 0.3 });
+    });
+}
+
+async function searchOccasionGifts(mainCategory, subCategory) {
+    const resultsSection = document.getElementById('occasion-results');
+    const giftsContainer = document.getElementById('occasion-gifts-container');
+    
+    // Show loading state
+    resultsSection.classList.remove('hidden');
+    giftsContainer.innerHTML = `
+        <div class="col-span-full flex flex-col items-center justify-center py-12">
+            <div class="relative">
+                <!-- Outer spinning ring -->
+                <div class="absolute inset-0 animate-spin">
+                    <div class="h-24 w-24 rounded-full border-4 border-transparent border-t-white/30 border-l-white/30"></div>
+                </div>
+                <!-- Inner spinning ring -->
+                <div class="absolute inset-0 animate-spin" style="animation-duration: 1.5s;">
+                    <div class="h-16 w-16 mx-auto my-4 rounded-full border-4 border-transparent border-t-white/60 border-l-white/60"></div>
+                </div>
+                <!-- Center occasion icon -->
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <span class="text-3xl animate-bounce">🎉</span>
+                </div>
+            </div>
+            <p class="text-white text-xl mt-8">Finding perfect gifts for ${subCategory}...</p>
+        </div>
+    `;
+    
+    try {
+        const gifts = await getOccasionGifts(mainCategory, subCategory);
+        displayOccasionGifts(gifts);
+    } catch (error) {
+        console.error('Error fetching occasion gifts:', error);
+        giftsContainer.innerHTML = `
+            <div class="col-span-full text-center text-white">
+                <p class="text-xl mb-4">Oops! Something went wrong.</p>
+                <button onclick="searchOccasionGifts('${mainCategory}', '${subCategory}')" 
+                        class="bg-white/20 px-6 py-3 rounded-full hover:bg-white/30 transition-all duration-300">
+                    Try Again
+                </button>
+            </div>
+        `;
+    }
+}
+
+async function getOccasionGifts(mainCategory, subCategory) {
+    const prompt = `Suggest gift ideas for a ${subCategory} occasion under the ${mainCategory} category. 
+                   Include a mix of traditional and unique gifts that are appropriate for this specific occasion.
+                   Consider various price ranges and recipient types.`;
+    
+    try {
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer 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'
+            },
+            body: JSON.stringify({
+                model: "llama-3.3-70b-versatile",
+                response_format: { type: "json_object" },
+                messages: [
+                    {
+                        role: "system",
+                        content: `You are a gift recommendation expert specializing in occasion-specific gifts.`
+                    },
+                    {
+                        role: "user",
+                        content: prompt
+                    }
+                ]
+            })
+        });
+
+        const data = await response.json();
+        const recommendations = JSON.parse(data.choices[0].message.content);
+        return transformRecommendations(recommendations.gifts);
+    } catch (error) {
+        console.error('Error getting occasion gifts:', error);
+        return getFallbackGifts();
+    }
+}
+
+function displayOccasionGifts(gifts) {
+    const giftsContainer = document.getElementById('occasion-gifts-container');
+    giftsContainer.innerHTML = '';
+    
+    gifts.forEach((gift, index) => {
+        const giftCard = createGiftCard(gift, index);
+        gsap.fromTo(giftCard,
+            { opacity: 0, y: 50 },
+            { opacity: 1, y: 0, duration: 0.5, delay: index * 0.2 }
+        );
+        giftsContainer.appendChild(giftCard);
+    });
 }
