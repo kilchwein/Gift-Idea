@@ -15,12 +15,30 @@ const bgColors = [
 document.addEventListener('DOMContentLoaded', () => {
     const startBtn = document.getElementById('start-btn');
     const restartBtn = document.getElementById('restart-btn');
+    const showResultsBtn = document.getElementById('show-results-btn');
     
     startBtn.addEventListener('click', startQuiz);
     restartBtn.addEventListener('click', restartQuiz);
+    showResultsBtn.addEventListener('click', async () => {
+        const confirmationScreen = document.getElementById('confirmation-screen');
+        
+        // Fade out confirmation screen
+        await gsap.to(confirmationScreen, {
+            opacity: 0,
+            duration: 0.3
+        });
+        confirmationScreen.classList.add('hidden');
+        
+        // Show results
+        await showResults();
+    });
 });
 
 function startQuiz() {
+    // Reset progress bar to 0% before starting
+    const progress = document.getElementById('progress');
+    gsap.set(progress, { width: '0%' });
+    
     gsap.to('#welcome-screen', {
         opacity: 0,
         duration: 0.5,
@@ -36,14 +54,6 @@ function showQuestion(index) {
     const question = questions[index];
     const questionText = document.getElementById('question-text');
     const optionsContainer = document.getElementById('options-container');
-    const progress = document.getElementById('progress');
-    
-    // Update progress bar with animation
-    gsap.to(progress, {
-        width: `${((index + 1) / questions.length) * 100}%`,
-        duration: 0.5,
-        ease: "power2.out"
-    });
     
     // Animate question text
     gsap.fromTo(questionText, 
@@ -54,11 +64,11 @@ function showQuestion(index) {
     questionText.textContent = question.text;
     optionsContainer.innerHTML = '';
 
-    // Always use 2 or 3 columns based on number of options
+    // Adjust grid for better mobile display
     optionsContainer.className = `grid gap-4 ${
         question.options.length > 4 
-            ? 'grid-cols-1 md:grid-cols-3' 
-            : 'grid-cols-1 md:grid-cols-2'
+            ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' 
+            : 'grid-cols-1 sm:grid-cols-2'
     }`;
 
     question.options.forEach((option, i) => {
@@ -70,14 +80,15 @@ function showQuestion(index) {
             transform hover:scale-105 transition-all duration-300
             border border-white/20 hover:border-white/40
             bg-opacity-10 backdrop-filter
+            w-full
         `;
         
         button.innerHTML = `
             <div class="flex items-center p-4 space-x-4 relative z-10">
-                <div class="bg-black/10 p-3 rounded-full group-hover:bg-white/20 transition-colors duration-300">
+                <div class="bg-black/10 p-3 rounded-full group-hover:bg-white/20 transition-colors duration-300 flex-shrink-0">
                     <span class="text-2xl filter drop-shadow-lg">${option.icon}</span>
                 </div>
-                <span class="text-lg font-medium text-white text-opacity-90 group-hover:text-white transition-colors duration-300">
+                <span class="text-lg font-medium text-white text-opacity-90 group-hover:text-white transition-colors duration-300 break-words">
                     ${option.text}
                 </span>
             </div>
@@ -108,10 +119,53 @@ async function handleAnswer(answer) {
     userAnswers.push(answer);
     
     if (currentQuestion < questions.length - 1) {
+        // Update progress bar immediately
+        const progress = document.getElementById('progress');
+        gsap.to(progress, {
+            width: `${((currentQuestion + 2) / questions.length) * 100}%`,
+            duration: 0.3,
+            ease: "power1.out"
+        });
+        
+        // Fade out current question
+        const questionContainer = document.getElementById('question-container');
+        await gsap.to(questionContainer, {
+            opacity: 0,
+            duration: 0.2
+        });
+        
+        // Update question
         currentQuestion++;
         showQuestion(currentQuestion);
+        
+        // Fade in new question
+        gsap.to(questionContainer, {
+            opacity: 1,
+            duration: 0.2
+        });
     } else {
-        await showResults();
+        // Show confirmation screen instead of results
+        const questionContainer = document.getElementById('question-container');
+        const confirmationScreen = document.getElementById('confirmation-screen');
+        
+        // Fade out question container
+        await gsap.to(questionContainer, {
+            opacity: 0,
+            duration: 0.3
+        });
+        questionContainer.classList.add('hidden');
+        
+        // Show and animate confirmation screen
+        confirmationScreen.classList.remove('hidden');
+        gsap.fromTo(confirmationScreen, 
+            { opacity: 0, scale: 0.9 },
+            { 
+                opacity: 1, 
+                scale: 1, 
+                duration: 0.5,
+                ease: "back.out(1.7)"
+            }
+        );
     }
 }
 
@@ -369,11 +423,18 @@ function getFallbackGifts() {
 function restartQuiz() {
     currentQuestion = 0;
     userAnswers = [];
+    
+    // Reset progress bar to 0%
+    const progress = document.getElementById('progress');
+    gsap.set(progress, { width: '0%' });
+    
     // Get new random questions
     questions.length = 0;
     questions.push(...getRandomQuestions());
     
+    // Hide all screens except welcome
     document.getElementById('results-screen').classList.add('hidden');
+    document.getElementById('confirmation-screen').classList.add('hidden');
     document.getElementById('welcome-screen').classList.remove('hidden');
     gsap.to('#welcome-screen', { opacity: 1, duration: 0.5 });
 }

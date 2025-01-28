@@ -31,9 +31,23 @@
             <div class="progress-bar w-full h-2 bg-white/20 rounded-full mb-8">
                 <div id="progress" class="h-full bg-white rounded-full transition-all duration-500"></div>
             </div>
-            <div class="bg-white/10 backdrop-blur-lg rounded-2xl p-8 shadow-2xl">
-                <h2 id="question-text" class="text-3xl text-white font-bold mb-6"></h2>
-                <div id="options-container" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+            <div class="bg-white/10 backdrop-blur-lg rounded-2xl p-4 sm:p-8 shadow-2xl">
+                <h2 id="question-text" class="text-2xl sm:text-3xl text-white font-bold mb-6"></h2>
+                <div id="options-container" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+            </div>
+        </div>
+
+        <!-- Add this after the question-container div and before results-screen -->
+        <div id="confirmation-screen" class="hidden text-center">
+            <div class="bg-white/10 backdrop-blur-lg rounded-2xl p-8 shadow-2xl max-w-2xl mx-auto">
+                <h2 class="text-3xl font-bold text-white mb-6">Ready to see your perfect gifts? ✨</h2>
+                <p class="text-xl text-white/80 mb-8">We've analyzed your preferences and found some amazing recommendations!</p>
+                <button id="show-results-btn" 
+                        class="bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-white px-8 py-4 rounded-full text-xl font-bold
+                               hover:from-pink-600 hover:via-purple-600 hover:to-indigo-600 transform hover:scale-110 transition-all duration-300
+                               shadow-lg hover:shadow-2xl animate-pulse">
+                    Reveal My Gifts 🎁
+                </button>
             </div>
         </div>
 
