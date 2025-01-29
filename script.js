@@ -1,12 +1,156 @@
-import {
-    quizModes,
-    budgetRanges,
-    occasionCategories,
-    tools,
-    GiftRegistry,
-    EventCountdown,
-    GiftCalculator
-} from './modes.js';
+// Quiz mode configurations
+const quizModes = {
+    quick: {
+        questionCount: 5,
+        name: "Quick Match",
+        icon: "⚡"
+    },
+    detailed: {
+        questionCount: 10,
+        name: "Detailed Journey",
+        icon: "🎯"
+    },
+    expert: {
+        questionCount: 15,
+        name: "Expert Analysis",
+        icon: "🔍"
+    }
+};
+
+// Budget explorer ranges
+const budgetRanges = [
+    { min: 0, max: 25, label: "Under $25" },
+    { min: 25, max: 50, label: "$25 - $50" },
+    { min: 50, max: 100, label: "$50 - $100" },
+    { min: 100, max: 200, label: "$100 - $200" },
+    { min: 200, max: 500, label: "$200 - $500" },
+    { min: 500, max: null, label: "$500+" }
+];
+
+// Occasion categories
+const occasionCategories = [
+    {
+        name: "Birthday",
+        icon: "🎂",
+        subcategories: ["Child", "Teen", "Adult", "Senior", "Milestone Birthday"]
+    },
+    {
+        name: "Holiday",
+        icon: "🎄",
+        subcategories: ["Christmas", "Hanukkah", "Valentine's Day", "Mother's Day", "Father's Day"]
+    },
+    {
+        name: "Special Events",
+        icon: "🎉",
+        subcategories: ["Wedding", "Graduation", "New Baby", "Housewarming", "Retirement"]
+    },
+    {
+        name: "Personal",
+        icon: "💝",
+        subcategories: ["Anniversary", "Thank You", "Get Well", "Congratulations", "Just Because"]
+    }
+];
+
+// Tool configurations
+const tools = {
+    calculator: {
+        name: "Gift Calculator",
+        icon: "🧮",
+        features: ["Budget Splitting", "Group Gift Planning", "Tax Calculator"]
+    },
+    countdown: {
+        name: "Event Countdown",
+        icon: "⏰",
+        features: ["Multiple Event Tracking", "Reminders", "Shopping Deadlines"]
+    },
+    registry: {
+        name: "Gift Registry",
+        icon: "📝",
+        features: ["Wishlist Creation", "Gift Ideas Saving", "Share with Others"]
+    }
+};
+
+// Registry for saving gift recommendations
+class GiftRegistry {
+    constructor() {
+        this.savedGifts = JSON.parse(localStorage.getItem('savedGifts')) || [];
+        this.wishlists = JSON.parse(localStorage.getItem('wishlists')) || [];
+    }
+
+    saveGift(gift) {
+        this.savedGifts.push({
+            ...gift,
+            savedAt: new Date().toISOString()
+        });
+        this.updateStorage();
+    }
+
+    createWishlist(name) {
+        const wishlist = {
+            id: Date.now(),
+            name,
+            gifts: [],
+            createdAt: new Date().toISOString()
+        };
+        this.wishlists.push(wishlist);
+        this.updateStorage();
+        return wishlist;
+    }
+
+    updateStorage() {
+        localStorage.setItem('savedGifts', JSON.stringify(this.savedGifts));
+        localStorage.setItem('wishlists', JSON.stringify(this.wishlists));
+    }
+}
+
+// Event countdown manager
+class EventCountdown {
+    constructor() {
+        this.events = JSON.parse(localStorage.getItem('giftEvents')) || [];
+    }
+
+    addEvent(name, date, reminderDays = [1, 7, 30]) {
+        const event = {
+            id: Date.now(),
+            name,
+            date,
+            reminderDays,
+            createdAt: new Date().toISOString()
+        };
+        this.events.push(event);
+        this.updateStorage();
+        return event;
+    }
+
+    getRemainingDays(event) {
+        const eventDate = new Date(event.date);
+        const today = new Date();
+        const diffTime = eventDate - today;
+        return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    }
+
+    updateStorage() {
+        localStorage.setItem('giftEvents', JSON.stringify(this.events));
+    }
+}
+
+// Budget calculator
+class GiftCalculator {
+    calculateGroupGift(totalAmount, numberOfPeople) {
+        return totalAmount / numberOfPeople;
+    }
+
+    calculateWithTax(amount, taxRate = 0.1) {
+        return amount * (1 + taxRate);
+    }
+
+    createBudgetPlan(totalBudget, categories) {
+        return categories.map(category => ({
+            name: category.name,
+            amount: (totalBudget * category.percentage)
+        }));
+    }
+}
 
 // Initialize the tools
 const registry = new GiftRegistry();
@@ -29,22 +173,20 @@ const bgColors = [
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', () => {
-    const startBtn = document.getElementById('start-btn');
     const restartBtn = document.getElementById('restart-btn');
     const showResultsBtn = document.getElementById('show-results-btn');
-    
-    startBtn.addEventListener('click', startQuiz);
+
     restartBtn.addEventListener('click', restartQuiz);
     showResultsBtn.addEventListener('click', async () => {
         const confirmationScreen = document.getElementById('confirmation-screen');
-        
+
         // Fade out confirmation screen
         await gsap.to(confirmationScreen, {
             opacity: 0,
             duration: 0.3
         });
         confirmationScreen.classList.add('hidden');
-        
+
         // Show results
         await showResults();
     });
@@ -70,11 +212,11 @@ document.addEventListener('DOMContentLoaded', () => {
 function startQuizMode(mode) {
     currentMode = mode;
     const questionCount = quizModes[mode].questionCount;
-    
+
     // Get new set of questions based on mode
     questions.length = 0;
     questions.push(...getRandomQuestions(questionCount));
-    
+
     startQuiz();
 }
 
@@ -82,7 +224,7 @@ function startQuiz() {
     // Reset progress bar to 0% before starting
     const progress = document.getElementById('progress');
     gsap.set(progress, { width: '0%' });
-    
+
     gsap.to('#welcome-screen', {
         opacity: 0,
         duration: 0.5,
@@ -98,9 +240,9 @@ function showQuestion(index) {
     const question = questions[index];
     const questionText = document.getElementById('question-text');
     const optionsContainer = document.getElementById('options-container');
-    
+
     // Animate question text
-    gsap.fromTo(questionText, 
+    gsap.fromTo(questionText,
         { opacity: 0, y: -20 },
         { opacity: 1, y: 0, duration: 0.7, ease: "back.out" }
     );
@@ -109,11 +251,10 @@ function showQuestion(index) {
     optionsContainer.innerHTML = '';
 
     // Adjust grid for better mobile display
-    optionsContainer.className = `grid gap-4 ${
-        question.options.length > 4 
-            ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' 
+    optionsContainer.className = `grid gap-4 ${question.options.length > 4
+            ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
             : 'grid-cols-1 sm:grid-cols-2'
-    }`;
+        }`;
 
     question.options.forEach((option, i) => {
         const button = document.createElement('button');
@@ -126,7 +267,7 @@ function showQuestion(index) {
             bg-opacity-10 backdrop-filter
             w-full
         `;
-        
+
         button.innerHTML = `
             <div class="flex items-center p-4 space-x-4 relative z-10">
                 <div class="bg-black/10 p-3 rounded-full group-hover:bg-white/20 transition-colors duration-300 flex-shrink-0">
@@ -141,14 +282,14 @@ function showQuestion(index) {
                         bg-gradient-to-r from-white/5 via-white/10 to-transparent
                         transform -skew-x-12"></div>
         `;
-        
+
         gsap.fromTo(button,
             { opacity: 0, x: -50, scale: 0.8 },
-            { 
-                opacity: 1, 
-                x: 0, 
+            {
+                opacity: 1,
+                x: 0,
                 scale: 1,
-                duration: 0.5, 
+                duration: 0.5,
                 delay: i * 0.1,
                 ease: "back.out(1.7)"
             }
@@ -161,7 +302,7 @@ function showQuestion(index) {
 
 async function handleAnswer(answer) {
     userAnswers.push(answer);
-    
+
     if (currentQuestion < questions.length - 1) {
         // Update progress bar immediately
         const progress = document.getElementById('progress');
@@ -170,18 +311,18 @@ async function handleAnswer(answer) {
             duration: 0.3,
             ease: "power1.out"
         });
-        
+
         // Fade out current question
         const questionContainer = document.getElementById('question-container');
         await gsap.to(questionContainer, {
             opacity: 0,
             duration: 0.2
         });
-        
+
         // Update question
         currentQuestion++;
         showQuestion(currentQuestion);
-        
+
         // Fade in new question
         gsap.to(questionContainer, {
             opacity: 1,
@@ -191,21 +332,21 @@ async function handleAnswer(answer) {
         // Show confirmation screen instead of results
         const questionContainer = document.getElementById('question-container');
         const confirmationScreen = document.getElementById('confirmation-screen');
-        
+
         // Fade out question container
         await gsap.to(questionContainer, {
             opacity: 0,
             duration: 0.3
         });
         questionContainer.classList.add('hidden');
-        
+
         // Show and animate confirmation screen
         confirmationScreen.classList.remove('hidden');
-        gsap.fromTo(confirmationScreen, 
+        gsap.fromTo(confirmationScreen,
             { opacity: 0, scale: 0.9 },
-            { 
-                opacity: 1, 
-                scale: 1, 
+            {
+                opacity: 1,
+                scale: 1,
                 duration: 0.5,
                 ease: "back.out(1.7)"
             }
@@ -217,11 +358,11 @@ async function showResults() {
     document.getElementById('question-container').classList.add('hidden');
     const resultsScreen = document.getElementById('results-screen');
     resultsScreen.classList.remove('hidden');
-    
+
     // Hide title and restart button during loading
     document.querySelector('#results-screen h2').classList.add('hidden');
     document.getElementById('restart-btn').classList.add('hidden');
-    
+
     const giftsContainer = document.getElementById('gifts-container');
     giftsContainer.innerHTML = `
         <div class="col-span-full flex flex-col items-center justify-center py-12">
@@ -245,23 +386,23 @@ async function showResults() {
             </div>
         </div>
     `;
-    
+
     const recommendedGifts = await getRecommendedGifts();
-    
+
     // Show title and restart button after loading
     document.querySelector('#results-screen h2').classList.remove('hidden');
     document.getElementById('restart-btn').classList.remove('hidden');
-    
+
     giftsContainer.innerHTML = '';
-    
+
     recommendedGifts.forEach((gift, index) => {
         const giftCard = createGiftCard(gift, index);
-        
+
         gsap.fromTo(giftCard,
             { opacity: 0, y: 50 },
             { opacity: 1, y: 0, duration: 0.5, delay: index * 0.2 }
         );
-        
+
         giftsContainer.appendChild(giftCard);
     });
 }
@@ -302,10 +443,10 @@ function getGiftIcon(category) {
 function createGiftCard(gift, index) {
     const card = document.createElement('div');
     card.className = 'gift-card';
-    
+
     const icon = getGiftIcon(gift.category);
     const bgColor = bgColors[index % bgColors.length];
-    
+
     card.innerHTML = `
         <div class="flex items-center mb-4">
             <div class="bg-gradient-to-br ${bgColor} p-4 rounded-full mr-4
@@ -326,7 +467,7 @@ function createGiftCard(gift, index) {
 
 async function getRecommendedGifts() {
     const prompt = generatePromptFromAnswers();
-    
+
     try {
         const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
             method: 'POST',
@@ -379,7 +520,7 @@ async function getRecommendedGifts() {
 }
 
 function generatePromptFromAnswers() {
-    const answerSummary = questions.map((q, i) => 
+    const answerSummary = questions.map((q, i) =>
         `For "${q.text}", they chose: "${userAnswers[i]}"`
     ).join('\n');
 
@@ -467,15 +608,15 @@ function getFallbackGifts() {
 function restartQuiz() {
     currentQuestion = 0;
     userAnswers = [];
-    
+
     // Reset progress bar to 0%
     const progress = document.getElementById('progress');
     gsap.set(progress, { width: '0%' });
-    
+
     // Get new random questions
     questions.length = 0;
     questions.push(...getRandomQuestions());
-    
+
     // Hide all screens except welcome
     document.getElementById('results-screen').classList.add('hidden');
     document.getElementById('confirmation-screen').classList.add('hidden');
@@ -499,7 +640,7 @@ function showBudgetExplorer() {
 function initializeBudgetExplorer() {
     const budgetRangesContainer = document.getElementById('budget-ranges');
     const categoriesContainer = document.getElementById('gift-categories');
-    
+
     // Populate budget ranges
     budgetRangesContainer.innerHTML = budgetRanges.map(range => `
         <button class="budget-range-btn bg-white/10 p-3 rounded-xl text-white hover:bg-white/20 transition-all duration-300
@@ -507,16 +648,16 @@ function initializeBudgetExplorer() {
             ${range.label}
         </button>
     `).join('');
-    
+
     // Add click handlers for budget ranges
     document.querySelectorAll('.budget-range-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-            document.querySelectorAll('.budget-range-btn').forEach(b => 
+            document.querySelectorAll('.budget-range-btn').forEach(b =>
                 b.classList.remove('bg-green-500', 'hover:bg-green-600'));
             btn.classList.add('bg-green-500', 'hover:bg-green-600');
         });
     });
-    
+
     // Populate gift categories with checkboxes
     categoriesContainer.innerHTML = Object.entries(categoryIcons).map(([category, icon]) => `
         <div class="flex items-center space-x-3">
@@ -527,14 +668,14 @@ function initializeBudgetExplorer() {
             </label>
         </div>
     `).join('');
-    
+
     // Add event listeners for navigation
     document.getElementById('back-to-home').addEventListener('click', () => {
         document.getElementById('budget-explorer').classList.add('hidden');
         document.getElementById('welcome-screen').classList.remove('hidden');
         gsap.to('#welcome-screen', { opacity: 1, duration: 0.3 });
     });
-    
+
     document.getElementById('search-budget-gifts').addEventListener('click', searchBudgetGifts);
 }
 
@@ -542,12 +683,12 @@ async function searchBudgetGifts() {
     const selectedBudgetBtn = document.querySelector('.budget-range-btn.bg-green-500');
     const selectedCategories = Array.from(document.querySelectorAll('#gift-categories input:checked'))
         .map(input => input.id.replace('cat-', ''));
-    
+
     if (!selectedBudgetBtn) {
         alert('Please select a budget range');
         return;
     }
-    
+
     // Show loading state
     const resultsSection = document.getElementById('budget-results');
     const giftsContainer = document.getElementById('budget-gifts-container');
@@ -558,18 +699,18 @@ async function searchBudgetGifts() {
             <p class="text-white text-xl">Finding gifts within your budget...</p>
         </div>
     `;
-    
+
     // Get budget range values
     const minBudget = parseFloat(selectedBudgetBtn.dataset.min);
     const maxBudget = selectedBudgetBtn.dataset.max ? parseFloat(selectedBudgetBtn.dataset.max) : Infinity;
-    
+
     // Additional filters
     const filters = {
         personalized: document.getElementById('personalized').checked,
         handmade: document.getElementById('handmade').checked,
         expressShipping: document.getElementById('express-shipping').checked
     };
-    
+
     try {
         const gifts = await getGiftsByBudget(minBudget, maxBudget, selectedCategories, filters);
         displayBudgetGifts(gifts);
@@ -596,7 +737,7 @@ async function getGiftsByBudget(minBudget, maxBudget, categories, filters) {
         - ${filters.handmade ? 'Include handmade items' : ''}
         - ${filters.expressShipping ? 'Must have express shipping available' : ''}
     `;
-    
+
     // Use the existing API call with the new prompt
     try {
         const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -636,7 +777,7 @@ async function getGiftsByBudget(minBudget, maxBudget, categories, filters) {
 function displayBudgetGifts(gifts) {
     const giftsContainer = document.getElementById('budget-gifts-container');
     giftsContainer.innerHTML = '';
-    
+
     gifts.forEach((gift, index) => {
         const giftCard = createGiftCard(gift, index);
         gsap.fromTo(giftCard,
@@ -662,7 +803,7 @@ function showOccasionFinder() {
 
 function initializeOccasionFinder() {
     const occasionContainer = document.getElementById('occasion-categories');
-    
+
     // Populate main occasion categories
     occasionContainer.innerHTML = occasionCategories.map(category => `
         <div class="occasion-category bg-white/10 backdrop-blur-lg rounded-2xl p-6 hover:bg-white/20 transition-all duration-300 cursor-pointer">
@@ -681,13 +822,13 @@ function initializeOccasionFinder() {
             </div>
         </div>
     `).join('');
-    
+
     // Add click handlers for categories
     document.querySelectorAll('.occasion-category').forEach(category => {
         category.addEventListener('click', (e) => {
             const subcategories = category.querySelector('.subcategories');
             const isSubcategoryBtn = e.target.closest('.subcategory-btn');
-            
+
             if (isSubcategoryBtn) {
                 // Handle subcategory selection
                 const mainCategory = category.querySelector('h3').textContent;
@@ -696,12 +837,12 @@ function initializeOccasionFinder() {
             } else {
                 // Toggle subcategories visibility
                 const wasHidden = subcategories.classList.contains('hidden');
-                
+
                 // Hide all subcategories first
                 document.querySelectorAll('.subcategories').forEach(sub => {
                     sub.classList.add('hidden');
                 });
-                
+
                 if (wasHidden) {
                     subcategories.classList.remove('hidden');
                     gsap.fromTo(subcategories,
@@ -712,7 +853,7 @@ function initializeOccasionFinder() {
             }
         });
     });
-    
+
     // Add event listener for back button
     document.getElementById('occasion-back-to-home').addEventListener('click', () => {
         document.getElementById('occasion-finder').classList.add('hidden');
@@ -724,7 +865,7 @@ function initializeOccasionFinder() {
 async function searchOccasionGifts(mainCategory, subCategory) {
     const resultsSection = document.getElementById('occasion-results');
     const giftsContainer = document.getElementById('occasion-gifts-container');
-    
+
     // Show loading state
     resultsSection.classList.remove('hidden');
     giftsContainer.innerHTML = `
@@ -746,7 +887,7 @@ async function searchOccasionGifts(mainCategory, subCategory) {
             <p class="text-white text-xl mt-8">Finding perfect gifts for ${subCategory}...</p>
         </div>
     `;
-    
+
     try {
         const gifts = await getOccasionGifts(mainCategory, subCategory);
         displayOccasionGifts(gifts);
@@ -768,7 +909,7 @@ async function getOccasionGifts(mainCategory, subCategory) {
     const prompt = `Suggest gift ideas for a ${subCategory} occasion under the ${mainCategory} category. 
                    Include a mix of traditional and unique gifts that are appropriate for this specific occasion.
                    Consider various price ranges and recipient types.`;
-    
+
     try {
         const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
             method: 'POST',
@@ -804,7 +945,7 @@ async function getOccasionGifts(mainCategory, subCategory) {
 function displayOccasionGifts(gifts) {
     const giftsContainer = document.getElementById('occasion-gifts-container');
     giftsContainer.innerHTML = '';
-    
+
     gifts.forEach((gift, index) => {
         const giftCard = createGiftCard(gift, index);
         gsap.fromTo(giftCard,
